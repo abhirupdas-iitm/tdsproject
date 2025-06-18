@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 
 # Constants
 DB_PATH = "knowledge_base.db"
-SIMILARITY_THRESHOLD = 0.68  # Lowered threshold for better recall
-MAX_RESULTS = 10  # Increased to get more context
+SIMILARITY_THRESHOLD = 0.5  # Lowered threshold for better recall
+MAX_RESULTS = 12  # Increased to get more context
 load_dotenv()
-MAX_CONTEXT_CHUNKS = 4  # Increased number of chunks per source
+MAX_CONTEXT_CHUNKS = 6  # Increased number of chunks per source
 API_KEY = os.getenv("API_KEY")  # Get API key from environment variable
 
 # Models
@@ -404,8 +404,10 @@ async def generate_answer(question, relevant_results, max_retries=2):
                 context += f"\n\n{source_type} (URL: {result['url']}):\n{result['content'][:1500]}"
             
             # Prepare improved prompt
-            prompt = f"""Answer the following question based ONLY on the provided context. 
-            If you cannot answer the question based on the context, say "I don't have enough information to answer this question."
+           prompt = f"""Answer the following question based ONLY on the provided context. 
+           If you cannot answer the question based on the context, say "I don't have enough information to answer this question."
+
+           If the context involves any kind of numerical scoring (like marks, grades, scores, or bonus), be precise and reflect exactly how the score appears on the dashboard or system, especially if a format like "110" (no slash) is used instead of "11/10".
             
             Context:
             {context}
@@ -437,7 +439,7 @@ async def generate_answer(question, relevant_results, max_retries=2):
                     {"role": "system", "content": "You are a helpful assistant that provides accurate answers based only on the provided context. Always include sources in your response with exact URLs."},
                     {"role": "user", "content": prompt}
                 ],
-                "temperature": 0.3  # Lower temperature for more deterministic outputs
+                "temperature": 0.1  # Lower temperature for more deterministic outputs
             }
             
             async with aiohttp.ClientSession() as session:
